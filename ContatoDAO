@@ -1,0 +1,98 @@
+package cadprodutos.cursoandroid.com.crudprojetoestudo.dao;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import cadprodutos.cursoandroid.com.crudprojetoestudo.entity.Contato;
+
+public class ContatoDAO {
+
+    private SQLiteDatabase db;
+
+    public static final String NOME_TABELA = "Contato";
+    public static final String COLUMN_ID = "id";
+    public static final String COLUMN_NOME = "nome";
+    public static final String COLUMN_EMAIL = "email";
+    public static final String COLUMN_TELFONE = "telefone";
+    public static final String CRIAR_TABELA = "CREATE TABLE "+NOME_TABELA+"("+COLUMN_ID+" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL UNIQUE,"+COLUMN_NOME+" TEXT NOT NULL, "+COLUMN_EMAIL+" TEXT UNIQUE, "+COLUMN_TELFONE+" TEXT UNIQUE)";
+
+    public ContatoDAO(Context ctx){
+        db = SQLHelper.getInstance(ctx).getWritableDatabase();
+    }
+
+    public boolean salvar(Contato contato){
+        long i = db.insert(NOME_TABELA, null, contatoContentalues(contato));
+
+        return true;
+    }
+
+    public boolean deletar(Contato contato){
+        String where = COLUMN_ID+ " =?";
+
+        String[] whereArgs = {
+                contato.getId().toString()
+        };
+
+        long i = db.delete(NOME_TABELA, where, whereArgs);
+
+
+        return true;
+    }
+
+    public boolean editar(Contato contato){
+        String where = COLUMN_ID + " =?";
+
+        String[] whereArgs = {
+                contato.getId().toString()
+        };
+
+        long i = db.update(NOME_TABELA, contatoContentalues(contato), where, whereArgs);
+
+
+        return true;
+
+    }
+
+    public ArrayList<Contato> listar(){
+        ArrayList<Contato> listaContatos = new ArrayList<Contato>();
+        String sqlBusca = "select * from " + NOME_TABELA ;
+        Cursor cursor = db.rawQuery(sqlBusca, null);
+
+        Contato contato;
+
+        int indiceId = cursor.getColumnIndex(COLUMN_ID);
+        int indiceNome = cursor.getColumnIndex(COLUMN_NOME);
+        int indiceEmail = cursor.getColumnIndex(COLUMN_EMAIL);
+        int indiceTelefone = cursor.getColumnIndex(COLUMN_TELFONE);
+        while(cursor.moveToNext()){
+
+               contato = new Contato();
+
+               contato.setId(cursor.getString(indiceId));
+               contato.setNome(cursor.getString(indiceNome));
+               contato.setEmail(cursor.getString(indiceEmail));
+               contato.setTelefone(cursor.getString(indiceTelefone));
+
+               listaContatos.add(contato);
+
+        }
+
+
+        return listaContatos;
+    }
+
+    private ContentValues contatoContentalues(Contato contato){
+
+        ContentValues cv = new ContentValues();
+        cv.put(COLUMN_NOME, contato.getNome());
+        cv.put(COLUMN_EMAIL, contato.getEmail());
+        cv.put(COLUMN_TELFONE, contato.getTelefone());
+
+        return cv;
+    }
+}
